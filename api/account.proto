@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "./;pb";
+package account;
+
+service Account {
+    rpc Version(google.protobuf.Empty) returns (google.protobuf.StringValue){}
+
+    rpc Register(User) returns (google.protobuf.StringValue){}
+    rpc Remove(google.protobuf.StringValue) returns (google.protobuf.Empty){}
+    rpc FindAll(google.protobuf.Empty) returns (stream User){}
+    rpc FindOne(google.protobuf.StringValue) returns (User){}
+}
+
+message User {
+    string uuid = 1;
+    string nick_name = 2;
+    string email = 3;
+    string phone = 4;
+    string register_timestamp = 5;
+}
