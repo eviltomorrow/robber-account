@@ -62,7 +62,6 @@ func TestUserWithInsertOne(t *testing.T) {
 	_assert.Equal(u1.NickName.String, user.NickName.String)
 	_assert.Equal(u1.Email, user.Email)
 	_assert.Equal(u1.Phone, user.Phone)
-	_assert.Equal(int8(0), user.Del)
 }
 
 func TestUserWithSelectRange(t *testing.T) {
@@ -94,10 +93,9 @@ func TestUserWithSelectRange(t *testing.T) {
 	users, err = UserWithSelectRange(mysql.DB, 0, 10, timeout)
 	_assert.Nil(err)
 	_assert.Equal(2, len(users))
-
 }
 
-func TestUserWithUpdateDel(t *testing.T) {
+func TestUserWithDeleteByUUID(t *testing.T) {
 	_assert := assert.New(t)
 	truncateUser()
 
@@ -109,31 +107,9 @@ func TestUserWithUpdateDel(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(int64(1), affected)
 
-	affected, err = UserWithInsertOne(tx, u2, timeout)
+	affected, err = UserWithDeleteByUUID(tx, u1.UUID, timeout)
 	_assert.Nil(err)
 	_assert.Equal(int64(1), affected)
 
 	tx.Commit()
-
-	user, err := UserWithSelectOneByUUID(mysql.DB, u1.UUID, timeout)
-	_assert.Nil(err)
-	_assert.Equal(int8(0), user.Del)
-
-	tx, err = mysql.DB.Begin()
-	if err != nil {
-		t.Fatal(err)
-	}
-	affected, err = UserWithUpdateDel(tx, u1.UUID, 0, timeout)
-	_assert.Nil(err)
-	_assert.Equal(int64(1), affected)
-
-	affected, err = UserWithUpdateDel(tx, u1.UUID, 1, timeout)
-	_assert.Nil(err)
-	_assert.Equal(int64(1), affected)
-	tx.Commit()
-
-	user, err = UserWithSelectOneByUUID(mysql.DB, u1.UUID, timeout)
-	_assert.Nil(err)
-	_assert.Equal(int8(1), user.Del)
-
 }

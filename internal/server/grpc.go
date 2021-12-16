@@ -3,12 +3,17 @@ package server
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/eviltomorrow/robber-account/internal/middleware"
+	"github.com/eviltomorrow/robber-account/internal/model"
+	"github.com/eviltomorrow/robber-account/internal/service"
 	"github.com/eviltomorrow/robber-account/pkg/pb"
 	"github.com/eviltomorrow/robber-core/pkg/grpclb"
+	"github.com/eviltomorrow/robber-core/pkg/mysql"
 	"github.com/eviltomorrow/robber-core/pkg/system"
 	"github.com/eviltomorrow/robber-core/pkg/zlog"
 	"github.com/eviltomorrow/robber-core/pkg/znet"
@@ -49,25 +54,84 @@ func (g *GRPC) Version(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.Strin
 	return &wrapperspb.StringValue{Value: buf.String()}, nil
 }
 
-//  Register(context.Context, *User) (*wrapperspb.StringValue, error)
+//  Create(context.Context, *User) (*wrapperspb.StringValue, error)
 // 	Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 // 	FindAll(*emptypb.Empty, Account_FindAllServer) error
 // 	FindOne(context.Context, *wrapperspb.StringValue) (*User, error)
 
-func (g *GRPC) Register(ctx context.Context, req *pb.User) (*wrapperspb.StringValue, error) {
-	return nil, nil
+func (g *GRPC) Create(ctx context.Context, req *pb.User) (*wrapperspb.StringValue, error) {
+	if req.Email == "" {
+		return nil, fmt.Errorf("invalid email parameter")
+	}
+	if req.Phone == "" {
+		return nil, fmt.Errorf("invalid phone parameter")
+	}
+
+	var user = &model.User{
+		NickName: sql.NullString{String: req.NickName},
+		Email:    req.Email,
+		Phone:    req.Phone,
+	}
+
+	uuid, err := service.CreateUser(user)
+	if err != nil {
+		return nil, err
+	}
+	return &wrapperspb.StringValue{Value: uuid}, nil
 }
 
 func (g *GRPC) Remove(ctx context.Context, req *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	return nil, nil
+	if err := service.RemoveUser(req.Value); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func (g *GRPC) FindAll(_ *emptypb.Empty, resp pb.Account_FindAllServer) error {
+	var (
+		offset  int64 = 0
+		limit   int64 = 50
+		timeout       = 10 * time.Second
+	)
+
+	for {
+		users, err := model.UserWithSelectRange(mysql.DB, offset, limit, timeout)
+		if err != nil {
+			return err
+		}
+
+		for _, user := range users {
+			if err := resp.Send(&pb.User{
+				Uuid:              user.UUID,
+				NickName:          user.NickName.String,
+				Email:             user.Email,
+				Phone:             user.Phone,
+				RegisterTimestamp: user.CreateTimestamp.Format("2006-01-02"),
+			}); err != nil {
+				return err
+			}
+		}
+
+		if int64(len(users)) < limit {
+			break
+		}
+		offset += limit
+	}
 	return nil
 }
 
 func (g *GRPC) FindOne(ctx context.Context, req *wrapperspb.StringValue) (*pb.User, error) {
-	return nil, nil
+	user, err := model.UserWithSelectOneByUUID(mysql.DB, req.Value, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.User{
+		Uuid:              user.UUID,
+		NickName:          user.NickName.String,
+		Email:             user.Email,
+		Phone:             user.Phone,
+		RegisterTimestamp: user.CreateTimestamp.Format("2006-01-02"),
+	}, nil
 }
 
 func StartupGRPC() error {

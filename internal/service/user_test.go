@@ -35,11 +35,11 @@ func TestRegisterUser(t *testing.T) {
 
 	truncateUser()
 
-	uuid, err := RegisterUser(u1)
+	uuid, err := CreateUser(u1)
 	_assert.Nil(err)
 	t.Logf("uuid: %v", uuid)
 
-	_, err = RegisterUser(u1)
+	_, err = CreateUser(u1)
 	_assert.NotNil(err)
 
 }
@@ -49,7 +49,7 @@ func TestRemoveUser(t *testing.T) {
 
 	truncateUser()
 
-	uuid, err := RegisterUser(u1)
+	uuid, err := CreateUser(u1)
 	_assert.Nil(err)
 	t.Logf("uuid: %v", uuid)
 

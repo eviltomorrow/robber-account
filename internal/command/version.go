@@ -10,7 +10,7 @@ import (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print version about robber-datasource",
+	Short: "Version about robber-account",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		printClientVersion()
@@ -24,7 +24,7 @@ func init() {
 func printClientVersion() {
 	var buf bytes.Buffer
 	buf.WriteString("Client: \r\n")
-	buf.WriteString(fmt.Sprintf("   robber-datasource Version (Current): %s\r\n", system.MainVersion))
+	buf.WriteString(fmt.Sprintf("   robber-account Version (Current): %s\r\n", system.MainVersion))
 	buf.WriteString(fmt.Sprintf("   Go Version: %v\r\n", system.GoVersion))
 	buf.WriteString(fmt.Sprintf("   Go OS/Arch: %v\r\n", system.GoOSArch))
 	buf.WriteString(fmt.Sprintf("   Git Sha: %v\r\n", system.GitSha))

@@ -57,7 +57,7 @@ var GlobalConfig = &Config{
 		DisableTimestamp: false,
 		Level:            "info",
 		Format:           "text",
-		FileName:         "/tmp/robber-datasource/data.log",
+		FileName:         "./log/data.log",
 		MaxSize:          20,
 	},
 	Etcd: Etcd{

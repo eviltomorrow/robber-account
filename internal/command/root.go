@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/eviltomorrow/robber-account/internal/config"
 	"github.com/eviltomorrow/robber-account/internal/server"
 	"github.com/eviltomorrow/robber-account/pkg/client"
 	"github.com/eviltomorrow/robber-core/pkg/mysql"
+	"github.com/eviltomorrow/robber-core/pkg/pid"
 	"github.com/eviltomorrow/robber-core/pkg/system"
 	"github.com/eviltomorrow/robber-core/pkg/zlog"
 	"github.com/eviltomorrow/robber-core/pkg/znet"
@@ -25,8 +27,12 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "robber-account",
 	Short: "",
-	Long:  "  \r\nrobber-account server running",
+	Long:  "  \r\nRobber-account service is running",
 	Run: func(cmd *cobra.Command, args []string) {
+		if err := pid.CreatePidFile("robber-account.pid"); err != nil {
+			log.Fatalf("[Fatal] Robber-account create pid file failure, nest error: %v\r\n", err)
+		}
+
 		if pprofMode {
 			go func() {
 				port, err := znet.GetFreePort()
@@ -43,6 +49,10 @@ var rootCmd = &cobra.Command{
 
 		setupCfg()
 		setupVars()
+
+		if err := mysql.Build(); err != nil {
+			zlog.Fatal("Build mysql connection failure", zap.Error(err))
+		}
 
 		if err := server.StartupGRPC(); err != nil {
 			zlog.Fatal("Startup GRPC service failure", zap.Error(err))
@@ -65,7 +75,6 @@ func init() {
 	}
 	rootCmd.Flags().StringVarP(&cfgPath, "config", "c", "config.toml", "robber-account's config file")
 	rootCmd.Flags().BoolVarP(&pprofMode, "pprof", "p", false, "robber-account's pprof mode")
-	rootCmd.MarkFlagRequired("config")
 }
 
 func Execute() {
@@ -90,10 +99,37 @@ func blockingUntilTermination() {
 func registerCleanFuncs() {
 	cleanFuncs = append(cleanFuncs, server.RevokeEtcdConn)
 	cleanFuncs = append(cleanFuncs, server.ShutdownGRPC)
+	cleanFuncs = append(cleanFuncs, pid.DestroyFile)
+}
+
+func findCfg() (string, error) {
+	var possibleConf = []string{
+		cfgPath,
+		"./etc/config.toml",
+		"../etc/config.toml",
+		"/etc/config.toml",
+	}
+	for _, path := range possibleConf {
+		if path == "" {
+			continue
+		}
+		if _, err := os.Stat(path); err == nil {
+			fp, err := filepath.Abs(path)
+			if err == nil {
+				return fp, nil
+			}
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("not find config.toml, possible path: %v", possibleConf)
 }
 
 func setupCfg() {
-	if err := cfg.Load(cfgPath, nil); err != nil {
+	path, err := findCfg()
+	if err != nil {
+		log.Fatalf("[Fatal] Find config file failure, nest error: %v\r\n", err)
+	}
+	if err := cfg.Load(path, nil); err != nil {
 		log.Fatalf("[Fatal] Load config file failure, nest error: %v\r\n", err)
 	}
 

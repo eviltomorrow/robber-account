@@ -100,3 +100,14 @@ install: build
 	@echo "$(CGREEN)=> Install ...$(CEND)"
 	go install ./...
 	@echo "$(CGREEN)=> install Success!$(CEND)"
+
+# Package tar.gz
+package: build
+	@echo "$(CGREEN)=> Package ...$(CEND)"
+	@mkdir -p package
+	@mkdir -p package/bin
+	@mkdir -p package/etc
+	@mkdir -p package/log
+	@cp bin/robber-account package/bin/
+	@cp config/config.toml package/etc/
+	@echo "$(CGREEN)=> Package Success!$(CEND)"

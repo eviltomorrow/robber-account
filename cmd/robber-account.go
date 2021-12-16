@@ -23,7 +23,7 @@ func main() {
 
 func setupEnv() {
 	if err := system.InitEnv(); err != nil {
-		log.Fatalf("[Fatal] robber-datasource init basic env failure, nest error: %v\r\n", err)
+		log.Fatalf("[Fatal] Robber-account init basic env failure, nest error: %v\r\n", err)
 	}
 }
 

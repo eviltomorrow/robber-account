@@ -14,14 +14,14 @@ var (
 	timeout = 10 * time.Second
 )
 
-func RegisterUser(user *model.User) (string, error) {
+func CreateUser(user *model.User) (string, error) {
 	uid, err := uuid.NewUUID()
 	if err != nil {
 		return "", err
 	}
 	_, err = model.UserWithSelectOneByEmail(mysql.DB, user.Email, timeout)
 	if err == nil {
-		return "", fmt.Errorf("email[%s] has been registered", user.Email)
+		return "", fmt.Errorf("email[%s] has been created", user.Email)
 	}
 	if err != sql.ErrNoRows {
 		return "", err
@@ -29,7 +29,7 @@ func RegisterUser(user *model.User) (string, error) {
 
 	_, err = model.UserWithSelectOneByPhone(mysql.DB, user.Phone, timeout)
 	if err == nil {
-		return "", fmt.Errorf("phone[%s] has been registered", user.Phone)
+		return "", fmt.Errorf("phone[%s] has been created", user.Phone)
 	}
 	if err != sql.ErrNoRows {
 		return "", err
@@ -62,7 +62,7 @@ func RemoveUser(uuid string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := model.UserWithUpdateDel(tx, uuid, 1, timeout); err != nil {
+	if _, err := model.UserWithDeleteByUUID(tx, uuid, timeout); err != nil {
 		tx.Rollback()
 		return err
 	}

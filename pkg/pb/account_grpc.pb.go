@@ -25,7 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountClient interface {
 	Version(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
+	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	Remove(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Account_FindAllClient, error)
 	FindOne(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*User, error)
@@ -48,9 +48,9 @@ func (c *accountClient) Version(ctx context.Context, in *emptypb.Empty, opts ...
 	return out, nil
 }
 
-func (c *accountClient) Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
+func (c *accountClient) Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	out := new(wrapperspb.StringValue)
-	err := c.cc.Invoke(ctx, "/account.Account/Register", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/account.Account/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (c *accountClient) FindOne(ctx context.Context, in *wrapperspb.StringValue,
 // for forward compatibility
 type AccountServer interface {
 	Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	Register(context.Context, *User) (*wrapperspb.StringValue, error)
+	Create(context.Context, *User) (*wrapperspb.StringValue, error)
 	Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	FindAll(*emptypb.Empty, Account_FindAllServer) error
 	FindOne(context.Context, *wrapperspb.StringValue) (*User, error)
@@ -126,8 +126,8 @@ type UnimplementedAccountServer struct {
 func (UnimplementedAccountServer) Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Version not implemented")
 }
-func (UnimplementedAccountServer) Register(context.Context, *User) (*wrapperspb.StringValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+func (UnimplementedAccountServer) Create(context.Context, *User) (*wrapperspb.StringValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedAccountServer) Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
@@ -169,20 +169,20 @@ func _Account_Version_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Account_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Account_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServer).Register(ctx, in)
+		return srv.(AccountServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/account.Account/Register",
+		FullMethod: "/account.Account/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServer).Register(ctx, req.(*User))
+		return srv.(AccountServer).Create(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -256,8 +256,8 @@ var Account_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Account_Version_Handler,
 		},
 		{
-			MethodName: "Register",
-			Handler:    _Account_Register_Handler,
+			MethodName: "Create",
+			Handler:    _Account_Create_Handler,
 		},
 		{
 			MethodName: "Remove",
