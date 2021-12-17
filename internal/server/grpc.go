@@ -54,10 +54,10 @@ func (g *GRPC) Version(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.Strin
 	return &wrapperspb.StringValue{Value: buf.String()}, nil
 }
 
-//  Create(context.Context, *User) (*wrapperspb.StringValue, error)
-// 	Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
-// 	FindAll(*emptypb.Empty, Account_FindAllServer) error
-// 	FindOne(context.Context, *wrapperspb.StringValue) (*User, error)
+// Create(context.Context, *User) (*wrapperspb.StringValue, error)
+// Destroy(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+// List(*emptypb.Empty, Account_ListServer) error
+// Find(context.Context, *wrapperspb.StringValue) (*User, error)
 
 func (g *GRPC) Create(ctx context.Context, req *pb.User) (*wrapperspb.StringValue, error) {
 	if req.Email == "" {
@@ -80,14 +80,14 @@ func (g *GRPC) Create(ctx context.Context, req *pb.User) (*wrapperspb.StringValu
 	return &wrapperspb.StringValue{Value: uuid}, nil
 }
 
-func (g *GRPC) Remove(ctx context.Context, req *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (g *GRPC) Destroy(ctx context.Context, req *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	if err := service.RemoveUser(req.Value); err != nil {
 		return nil, err
 	}
 	return &emptypb.Empty{}, nil
 }
 
-func (g *GRPC) FindAll(_ *emptypb.Empty, resp pb.Account_FindAllServer) error {
+func (g *GRPC) List(_ *emptypb.Empty, resp pb.Account_ListServer) error {
 	var (
 		offset  int64 = 0
 		limit   int64 = 50
@@ -120,7 +120,7 @@ func (g *GRPC) FindAll(_ *emptypb.Empty, resp pb.Account_FindAllServer) error {
 	return nil
 }
 
-func (g *GRPC) FindOne(ctx context.Context, req *wrapperspb.StringValue) (*pb.User, error) {
+func (g *GRPC) Find(ctx context.Context, req *wrapperspb.StringValue) (*pb.User, error) {
 	user, err := model.UserWithSelectOneByUUID(mysql.DB, req.Value, 10*time.Second)
 	if err != nil {
 		return nil, err

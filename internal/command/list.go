@@ -24,7 +24,7 @@ var listCmd = &cobra.Command{
 		}
 		defer close()
 
-		resp, err := stub.FindAll(context.Background(), &emptypb.Empty{})
+		resp, err := stub.List(context.Background(), &emptypb.Empty{})
 		if err != nil {
 			log.Fatalf("[Error] List all account failure, nest error: %v\r\n", err)
 		}
@@ -40,7 +40,25 @@ var listCmd = &cobra.Command{
 			if err != nil {
 				log.Fatalf("[Error] Recv account failure, nest error: %v\r\n", err)
 			}
-			var v = []string{user.Uuid, user.NickName, user.Email, user.Phone}
+			var (
+				v     = make([]string, 0, 4)
+				email = user.Email
+				phone = user.Phone
+			)
+			v = append(v, user.Uuid)
+			v = append(v, user.NickName)
+
+			for _, h := range hide {
+				if h == "email" {
+					email = "**************"
+				}
+				if h == "phone" {
+					phone = "**********"
+				}
+			}
+			v = append(v, email)
+			v = append(v, phone)
+
 			table.Append(v)
 			count++
 		}
@@ -53,8 +71,12 @@ var listCmd = &cobra.Command{
 	},
 }
 
+var (
+	hide []string
+)
+
 func init() {
 	listCmd.Flags().StringVarP(&cfgPath, "config", "c", "config.toml", "robber-account's config file")
-
+	listCmd.Flags().StringArrayVar(&hide, "hide", []string{}, "hide special properties")
 	rootCmd.AddCommand(listCmd)
 }

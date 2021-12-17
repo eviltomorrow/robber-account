@@ -10,9 +10,9 @@ service Account {
     rpc Version(google.protobuf.Empty) returns (google.protobuf.StringValue){}
 
     rpc Create(User) returns (google.protobuf.StringValue){}
-    rpc Remove(google.protobuf.StringValue) returns (google.protobuf.Empty){}
-    rpc FindAll(google.protobuf.Empty) returns (stream User){}
-    rpc FindOne(google.protobuf.StringValue) returns (User){}
+    rpc Destroy(google.protobuf.StringValue) returns (google.protobuf.Empty){}
+    rpc List(google.protobuf.Empty) returns (stream User){}
+    rpc Find(google.protobuf.StringValue) returns (User){}
 }
 
 message User {

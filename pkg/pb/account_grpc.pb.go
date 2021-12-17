@@ -26,9 +26,9 @@ const _ = grpc.SupportPackageIsVersion7
 type AccountClient interface {
 	Version(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	Remove(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Account_FindAllClient, error)
-	FindOne(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*User, error)
+	Destroy(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Account_ListClient, error)
+	Find(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*User, error)
 }
 
 type accountClient struct {
@@ -57,21 +57,21 @@ func (c *accountClient) Create(ctx context.Context, in *User, opts ...grpc.CallO
 	return out, nil
 }
 
-func (c *accountClient) Remove(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *accountClient) Destroy(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/account.Account/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/account.Account/Destroy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *accountClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Account_FindAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Account_ServiceDesc.Streams[0], "/account.Account/FindAll", opts...)
+func (c *accountClient) List(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Account_ListClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Account_ServiceDesc.Streams[0], "/account.Account/List", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &accountFindAllClient{stream}
+	x := &accountListClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -81,16 +81,16 @@ func (c *accountClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...
 	return x, nil
 }
 
-type Account_FindAllClient interface {
+type Account_ListClient interface {
 	Recv() (*User, error)
 	grpc.ClientStream
 }
 
-type accountFindAllClient struct {
+type accountListClient struct {
 	grpc.ClientStream
 }
 
-func (x *accountFindAllClient) Recv() (*User, error) {
+func (x *accountListClient) Recv() (*User, error) {
 	m := new(User)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -98,9 +98,9 @@ func (x *accountFindAllClient) Recv() (*User, error) {
 	return m, nil
 }
 
-func (c *accountClient) FindOne(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*User, error) {
+func (c *accountClient) Find(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*User, error) {
 	out := new(User)
-	err := c.cc.Invoke(ctx, "/account.Account/FindOne", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/account.Account/Find", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +113,9 @@ func (c *accountClient) FindOne(ctx context.Context, in *wrapperspb.StringValue,
 type AccountServer interface {
 	Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	Create(context.Context, *User) (*wrapperspb.StringValue, error)
-	Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
-	FindAll(*emptypb.Empty, Account_FindAllServer) error
-	FindOne(context.Context, *wrapperspb.StringValue) (*User, error)
+	Destroy(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+	List(*emptypb.Empty, Account_ListServer) error
+	Find(context.Context, *wrapperspb.StringValue) (*User, error)
 	mustEmbedUnimplementedAccountServer()
 }
 
@@ -129,14 +129,14 @@ func (UnimplementedAccountServer) Version(context.Context, *emptypb.Empty) (*wra
 func (UnimplementedAccountServer) Create(context.Context, *User) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedAccountServer) Remove(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+func (UnimplementedAccountServer) Destroy(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Destroy not implemented")
 }
-func (UnimplementedAccountServer) FindAll(*emptypb.Empty, Account_FindAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method FindAll not implemented")
+func (UnimplementedAccountServer) List(*emptypb.Empty, Account_ListServer) error {
+	return status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-func (UnimplementedAccountServer) FindOne(context.Context, *wrapperspb.StringValue) (*User, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindOne not implemented")
+func (UnimplementedAccountServer) Find(context.Context, *wrapperspb.StringValue) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
 func (UnimplementedAccountServer) mustEmbedUnimplementedAccountServer() {}
 
@@ -187,59 +187,59 @@ func _Account_Create_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Account_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Account_Destroy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServer).Remove(ctx, in)
+		return srv.(AccountServer).Destroy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/account.Account/Remove",
+		FullMethod: "/account.Account/Destroy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServer).Remove(ctx, req.(*wrapperspb.StringValue))
+		return srv.(AccountServer).Destroy(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Account_FindAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Account_List_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AccountServer).FindAll(m, &accountFindAllServer{stream})
+	return srv.(AccountServer).List(m, &accountListServer{stream})
 }
 
-type Account_FindAllServer interface {
+type Account_ListServer interface {
 	Send(*User) error
 	grpc.ServerStream
 }
 
-type accountFindAllServer struct {
+type accountListServer struct {
 	grpc.ServerStream
 }
 
-func (x *accountFindAllServer) Send(m *User) error {
+func (x *accountListServer) Send(m *User) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Account_FindOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Account_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServer).FindOne(ctx, in)
+		return srv.(AccountServer).Find(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/account.Account/FindOne",
+		FullMethod: "/account.Account/Find",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServer).FindOne(ctx, req.(*wrapperspb.StringValue))
+		return srv.(AccountServer).Find(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -260,18 +260,18 @@ var Account_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Account_Create_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _Account_Remove_Handler,
+			MethodName: "Destroy",
+			Handler:    _Account_Destroy_Handler,
 		},
 		{
-			MethodName: "FindOne",
-			Handler:    _Account_FindOne_Handler,
+			MethodName: "Find",
+			Handler:    _Account_Find_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "FindAll",
-			Handler:       _Account_FindAll_Handler,
+			StreamName:    "List",
+			Handler:       _Account_List_Handler,
 			ServerStreams: true,
 		},
 	},

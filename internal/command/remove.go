@@ -28,7 +28,7 @@ var removeCmd = &cobra.Command{
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		_, err = stub.Remove(ctx, &wrapperspb.StringValue{
+		_, err = stub.Destroy(ctx, &wrapperspb.StringValue{
 			Value: args[0],
 		})
 		if err != nil {
