@@ -105,10 +105,12 @@ install: build
 package: build
 	@echo "$(CGREEN)=> Package ...$(CEND)"
 	@mkdir -p package
+	@rm -rf package/*
 	@mkdir -p package/bin
 	@mkdir -p package/etc
 	@mkdir -p package/log
 	@cp bin/robber-account package/bin/
+	@cp scripts/startup.sh package/bin/
 	@cp config/config.toml package/etc/
 	@echo "exec-path: package/bin/robber-account"
 	@echo "$(CGREEN)=> Package Success!$(CEND)"
