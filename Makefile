@@ -110,4 +110,5 @@ package: build
 	@mkdir -p package/log
 	@cp bin/robber-account package/bin/
 	@cp config/config.toml package/etc/
+	@echo "exec-path: package/bin/robber-account"
 	@echo "$(CGREEN)=> Package Success!$(CEND)"

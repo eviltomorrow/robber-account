@@ -16,3 +16,5 @@
 
 bin/robber-account
 package
+log
+robber-account.pid

@@ -52,7 +52,7 @@ func CreateUser(user *model.User) (string, error) {
 func RemoveUser(uuid string) error {
 	_, err := model.UserWithSelectOneByUUID(mysql.DB, uuid, timeout)
 	if err == sql.ErrNoRows {
-		return fmt.Errorf("no user with uuid[%s]", uuid)
+		return fmt.Errorf("not find account with uuid[%s]", uuid)
 	}
 	if err != nil {
 		return err
