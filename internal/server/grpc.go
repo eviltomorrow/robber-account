@@ -26,7 +26,7 @@ import (
 
 var (
 	Host           = "0.0.0.0"
-	Port           = 19093
+	Port           = 27323
 	Endpoints      = []string{}
 	RevokeEtcdConn func() error
 	Key            = "grpclb/service/account"
