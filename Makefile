@@ -72,11 +72,13 @@ cover: test
 			{print "$(CYELLOW)"$$0"%$(CEND)"}}'
 			
 # compile
+.PHONY: compile
 compile:
 	@echo "$(CGREEN)=> Compile protobuf ...$(CEND)"
 	@bash scripts/compile-grpc.sh
 
 # Builds the project
+.PHONY: build
 build: fmt
 	@echo "$(CGREEN)=> Building ...$(CEND)"
 	@mkdir -p bin
@@ -84,24 +86,28 @@ build: fmt
 	@echo "$(CGREEN)=> Build Success!$(CEND)"
 
 # Build docker
+.PHONY: docker
 docker:
 	@echo "$(CGREEN)=> Building for docker ...$(CEND)"
 	docker build -t registry.cn-hangzhou.aliyuncs.com/eviltomorrow/robber-account:$(version) .
 	@echo "$(CGREEN)=> Build Success!$(CEND)"
 
 # Publish docker
+.PHONY: publish
 publish:
 	@echo "$(CGREEN)=> Publishing for docker ...$(CEND)"
 	docker push registry.cn-hangzhou.aliyuncs.com/eviltomorrow/robber-account:$(version)
 	@echo "$(CGREEN)=> Publish Success!$(CEND)"
 
 # Installs our project: copies binaries
+.PHONY: install
 install: build
 	@echo "$(CGREEN)=> Install ...$(CEND)"
 	go install ./...
 	@echo "$(CGREEN)=> install Success!$(CEND)"
 
 # Package tar.gz
+.PHONY: package
 package: build
 	@echo "$(CGREEN)=> Package ...$(CEND)"
 	@mkdir -p package
